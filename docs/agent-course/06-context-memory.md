@@ -68,5 +68,68 @@ flowchart TB
 - 删除 UI 卡片但数据库仍在默认查询中返回；
 - 摘要丢失订单号、确认状态等关键事实。
 
+## 核心概念
+
+Context 是一次推理可见的信息；Memory 是信息跨步骤保存与恢复的机制。两者不等价。把全部聊天记录塞进 context 是最简单的短期记忆，但成本会增长，旧信息会干扰新决策，也不能替代业务数据库。
+
+本课程把记忆分为四层：对话历史、结构化会话状态、业务系统事实、可选长期偏好。订单状态属于业务事实，pending proposal 属于会话状态，用户说过的话属于对话历史；不能混存。
+
+```mermaid
+flowchart TD
+    M[Current Message] --> CP[Context Projector]
+    H[Recent History] --> CP
+    S[Structured Session State] --> CP
+    B[Business Observations] --> CP
+    CP --> L[Bounded LLM Context]
+    L --> A[Next Action]
+    A --> S
+```
+
+### 身份是记忆边界
+
+登录成功后，会话绑定唯一 customer identity。后续“我的订单”只能投影该用户的数据。新会话可以恢复用户身份，但不能继承另一个用户的订单 observation。任何跨用户长期记忆都必须有明确数据模型、用途和删除规则。
+
+## 本项目中的实现
+
+- `backend/app/agent/session_store.py` 保存会话状态；
+- `backend/app/agent/order_identity.py` 恢复订单指代；
+- `backend/app/support/projector.py` 把持久记录投影为前端会话；
+- `backend/app/persistence/repositories.py` 提供会话与消息持久化；
+- `backend/app/auth/retail_identity.py` 负责应用账户与 Retail 用户映射；
+- `backend/app/support/service.py` 实现会话归属、重命名、置顶、分组和逻辑删除。
+
+## 执行链路
+
+第一轮查询返回三个订单，Runtime 将结构化订单 observation 写入 state。第二轮用户说“办公椅那个”，目标恢复逻辑基于当前用户、最近 observation 和商品信息选择订单 ID。Planner 得到的是明确目标，而不是仅靠语言猜测。
+
+会话逻辑删除后，默认列表查询必须排除它；空白会话不应长期占据列表。分组、置顶和标题属于产品元数据，不应混入 Planner 的业务上下文。
+
+## 设计取舍
+
+项目优先保存结构化事实，而不是自动生成无限摘要。结构化字段更容易校验和迁移，摘要只适合压缩叙事。当前没有跨会话向量长期记忆，这是刻意限制：客服场景首先需要身份隔离和可删除性，而不是“记住用户的一切”。
+
+上下文投影应最小化：Planner 只看到完成当前目标所需的订单、工具结果和政策片段。更大的 context 不必然更聪明，反而增加泄露、冲突和 Token 成本。
+
+## 失败模式
+
+- 用户切换后仍看到旧订单：身份绑定或缓存键错误；
+- “那个订单”恢复到错误对象：候选集合没有限定当前用户和最近观察；
+- 新会话继承 pending 写操作：危险状态未在边界清理；
+- 删除后重新出现：列表查询没有过滤逻辑删除字段；
+- 标题摘要泄露敏感信息：生成与展示前缺少脱敏。
+
+## 动手实验：验证身份隔离
+
+使用两个演示客户分别登录，各自查询订单并创建会话。验证 A 的会话 ID、订单号或分组接口不能被 B 读取或修改。然后测试逻辑删除：删除后立即从默认列表消失，但审计数据仍可由有权限的工程流程保留。
+
+```bash
+./scripts/test_backend.sh -q backend/tests/auth
+./scripts/test_backend.sh -q backend/tests/support
+```
+
+## 知识检查
+
+如果要增加“记住用户喜欢简洁回答”，它属于哪一层？需要怎样的同意、作用域、更新和删除机制？只有回答这些问题，长期记忆才不是隐私债务。
+
 [上一课](05-policy-hitl.md) · [下一课：Policy RAG](07-policy-rag.md)
 

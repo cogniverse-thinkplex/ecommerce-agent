@@ -67,5 +67,66 @@ ECOM_AGENT_PROPOSAL_GENERATOR=rule ./scripts/run_runtime_regression.sh
 - 用 expected trajectory 强行控制真实 Agent；
 - 每次模型调用都丢弃 usage，导致成本台永远为零。
 
+## 核心概念
+
+Planner 的职责是把“当前状态 + 可用能力 + 用户目标”转换为下一步结构化提案。它没有执行权。理想输出不是一段夹杂 JSON 的自然语言，而是可验证的联合类型：回复、工具提案、请求澄清或转人工。
+
+Skill 是任务局部的决策边界：它提供目标、适用条件、允许工具、关键约束和少量示例。Skill 不应复制全部系统 policy，也不应成为可以绕过 Guard 的第二套权限系统。
+
+### 为什么结构化输出重要
+
+文本“请取消订单 W123”不能安全执行，因为工具名、参数类型和意图边界不明确。结构化提案至少需要 tool name、arguments、rationale 和可追踪的 planner metadata。解析失败应成为显式错误，而不是猜测文本。
+
+```mermaid
+flowchart LR
+    C[Context] --> R[Skill Router]
+    R --> SK[Selected Skill]
+    SK --> LLM[LLM Planner]
+    LLM --> V{Schema valid?}
+    V -->|否| REC[Repair / Fail]
+    V -->|是| P[Tool Proposal]
+    P --> G[Policy Guard]
+```
+
+## 本项目中的实现
+
+- `backend/app/agent/proposal_generator.py` 封装 rule/LLM Planner 和 usage；
+- `backend/app/agent/skills.py` 定义任务 Skill 与可用工具；
+- `backend/app/agent/order_identity.py` 辅助恢复订单目标；
+- `backend/app/agent/audit.py` 记录 rationale 和 Planner 元数据；
+- `backend/app/agent/response_composer.py` 将证据组织成最终回复。
+
+## 执行链路
+
+输入“取消刚才那个订单”时，Router 根据会话中已有订单 observation 选择订单售后 Skill。Planner 看到允许工具及 schema，生成取消提案。参数恢复优先使用结构化上下文中的订单 ID，而不是让模型凭文本猜测。提案通过 schema 校验后才进入 Guard。
+
+Rule Planner 在产品默认路径中不是主角，但它是确定性对照组：可以验证 Tool/Guard/MCP 链路，而不把模型波动混入故障定位。真实 LLM 的性能和成本则需要单独观测。
+
+## 设计取舍
+
+把所有工具一次性暴露给模型实现最简单，但工具越多，名称相似、参数冲突和误选越多。Skill routing 用较小的动作空间换取更稳定的决策。代价是 Router 自身也需要评测，错误路由可能让正确工具根本不可见。
+
+项目保留有限 repair，而不做无限自我修复。无界 repair 会掩盖 schema 或 prompt 问题，并增加成本。恢复次数、错误类型和最终停止原因都应进入 Trace。
+
+## 失败模式
+
+- Planner 返回自然语言而非 schema：检查模型结构化输出能力和解析错误；
+- 选对工具但参数属于另一订单：检查 context projection 和目标恢复；
+- 重复调用只读工具：检查 objective ledger 是否标记已获得信息；
+- 过早回复“无法处理”：检查 Skill 工具范围和终止判断；
+- Token/成本为零：确认 provider usage 是否穿过 Planner 适配层。
+
+## 动手实验：比较决策而非文案
+
+在回归页用同一任务分别运行 rule 与 llm Planner，比较：Skill、动作序列、第一处偏差、停止原因、业务结果、Token 和成本。不要只比较最终中文回复。
+
+思考：如果两条轨迹不同但最终订单都正确取消，哪个指标应该通过？答案会在第 09 课展开。
+
+### 进一步练习
+
+为“修改默认地址”设计一个 Skill：写出适用条件、允许工具、必需参数、禁止行为和结束条件。再故意删除地址 ID，观察 Planner 应当请求澄清还是先查询地址列表。这个练习用于区分“模型缺少信息”和“模型选择错误”。
+
+当你能让同一 Skill 在 rule 与 LLM Planner 下共享 Tool Proposal schema，并被同一个 Guard 审核时，决策层与执行层才真正解耦。
+
 [上一课](02-harness-state-loop.md) · [下一课：MCP 工具层](04-mcp-tools.md)
 

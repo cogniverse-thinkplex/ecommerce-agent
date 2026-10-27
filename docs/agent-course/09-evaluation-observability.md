@@ -86,5 +86,82 @@ flowchart LR
 - 只修当前失败任务，不跑全量回归；
 - Trace 中泄露 API key、密码或客户敏感信息。
 
+## 核心概念
+
+Agent 评测必须分层。文本质量回答“说得怎么样”；轨迹评测回答“采取了哪些动作”；策略评测回答“是否遵守权限与确认”；业务结果回答“环境是否真的达到目标”。最终上线门禁不能只依赖其中一层。
+
+Reward 是任务成功的数值信号，不是训练时才存在。tau2 任务通常根据目标状态和交互结果给出 reward。项目还补充 exact trajectory、business success、confirmation verified 和 state changed，避免单一分数掩盖原因。
+
+```mermaid
+flowchart BT
+    L1[文本与引用质量] --> L2[Tool / 参数 / 轨迹]
+    L2 --> L3[Policy 与 HITL]
+    L3 --> L4[业务结果与状态变化]
+    L4 --> L5[线上成功率 / 时延 / 成本 / 反馈]
+```
+
+### 轨迹一致不等于结果正确
+
+基准轨迹来自任务定义中的期望动作序列。实际工具名与参数按位置比较，可定位第一处偏差。但多条路径可能得到相同正确结果，因此 exact match 适合诊断，不应单独否决业务成功。反过来，轨迹看似正确但停在确认门禁，也不能声称已经落库。
+
+### Reflection 的位置
+
+Reflection 应基于失败证据产生诊断候选，例如“Skill 路由错误”“订单目标恢复失败”，再由工程人员加入回归并验证。让 Agent 在线无限反思会增加时延和不可控行为，不等于质量闭环。
+
+## 本项目中的实现
+
+- `backend/app/evaluation/outcome_evaluator.py` 验证目标工具、参数和状态；
+- `backend/app/evaluation/results_compare.py` 比较运行结果；
+- `backend/app/evaluation/runtime_regression.py` 执行回归；
+- `backend/app/evaluation/runtime_quality_gate.py` 汇总门禁；
+- `backend/app/regression/service.py` 管理 bad case；
+- `backend/app/telemetry/service.py` 汇总调用、时延、Token 和成本；
+- `backend/app/observability/redaction.py` 对观测数据脱敏。
+
+## 执行链路
+
+一次运行保存任务版本、Planner、模型、工具后端、Trace、usage 和业务结果。Evaluator 将实际动作与 benchmark 期望比较，并读取最终环境状态。失败矩阵按 planner terminal、tool error、policy denial、action deviation、outcome failure 等分类。工程人员把真实会话加入回归集，修复后同时运行目标 case 和全量集。
+
+成本来自 provider usage 与价格目录。Rule Planner 没有模型调用，因此 Token 为 0、目录价可能 N/A 是合理事实；LLM usage 缺失时应显示未知，而不是伪造 0。
+
+## 设计取舍
+
+项目保留轨迹匹配，是因为它能快速定位行为偏差；同时增加 outcome evidence，避免把多解任务误判。线上指标聚合用于趋势，单次 Trace 用于解释，两者不可互相替代。
+
+错误收集和用户反馈分开：错误是系统检测到的异常，反馈是用户描述的问题。二者可以关联到同一会话，但处理状态和优先级不同。
+
+## 失败模式
+
+- 把等待确认算成失败：安全行为被错误惩罚；
+- 把门禁成功算成落库成功：混淆阶段；
+- LLM Token 永远为 0：usage 未透传或调用根本没发生；
+- N/A 被显示为 0：未知数据被误解为免费；
+- 只重跑单个 case：修复导致其他任务退化；
+- 线上日志含密钥或 PII：采集前没有统一脱敏。
+
+## 动手实验：构造一个可回归失败
+
+在工程控制台选择一个固定 Retail 任务，用 rule 和 LLM 各运行一次。记录第一处动作偏差、停止原因、业务状态、usage 和成本。把失败加入测试，修复后再次运行，并确认历史结果仍保留。
+
+离线验证入口：
+
+```bash
+./scripts/test_backend.sh -q backend/tests/evaluation
+./scripts/test_backend.sh -q backend/tests/telemetry
+```
+
+## 指标解释清单
+
+- 成功率必须注明分母和成功定义；
+- 平均时延最好同时看 P50/P95，避免均值掩盖长尾；
+- Token 区分输入、输出和缓存；
+- 成本区分 provider 实际返回与目录价估算；
+- 人工接管率需要结合任务复杂度，不是越低越好；
+- 用户反馈率低可能是入口不可见，不必然代表满意。
+
+## 知识检查
+
+如果动作序列与基准不同但状态正确，应如何判定？业务成功通过、exact match 失败，并保留差异用于诊断；质量门禁如何组合两者取决于发布目标。
+
 [上一课](08-business-product.md) · [下一课：生产化](10-production.md)
 
