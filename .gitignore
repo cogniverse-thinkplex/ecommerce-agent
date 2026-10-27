@@ -31,6 +31,10 @@ benchmarks/data/**
 !benchmarks/data/tau2/domains/retail/**
 benchmarks/web/**/node_modules/
 
+# Generated evaluation reports are local runtime evidence, not source docs.
+docs/smoke/
+docs/validation/
+
 # OS/editor/runtime noise
 **/.DS_Store
 *.pid

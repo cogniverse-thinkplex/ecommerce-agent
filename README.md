@@ -237,8 +237,8 @@ BACKEND_PORT=8020 ./scripts/run_local_product.sh
 - 大型 benchmark 数据建议通过下载脚本或 Release 提供；GitHub 普通 Git 不适合保存超大数据集。
 
 第三方代码、我们的修改点和完整下载地址见
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。GitHub 上传分类见
-[公开发布检查清单](docs/operations/github-publication-checklist.md)。
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。公开文档的范围与入口见
+[docs/README.md](docs/README.md)。
 
 ## 验证质量
 
@@ -292,10 +292,11 @@ benchmarks/         # tau2-bench 运行环境与 Retail 数据
 
 ## 文档
 
+- [文档导航](docs/README.md)
 - [Agent 工程实战课程](docs/agent-course/README.md)
-- [最终实现路线图](docs/final_implementation_roadmap.md)
 - [生产运行手册](docs/operations/production-runbook.md)
-- [GitHub 公开发布检查清单](docs/operations/github-publication-checklist.md)
+- [安全例外说明](docs/operations/security-waivers.md)
+- [tau2 Retail 基线](docs/baseline/p0_tau2_retail_baseline.md)
 - [第三方代码与数据声明](THIRD_PARTY_NOTICES.md)
 
 生成额外的脱敏 GitHub 上传副本：
@@ -303,8 +304,6 @@ benchmarks/         # tau2-bench 运行环境与 Retail 数据
 ```bash
 ./scripts/build_github_release_bundle.sh
 ```
-- [安全例外说明](docs/operations/security-waivers.md)
-- [tau2 Retail 基线](docs/baseline/p0_tau2_retail_baseline.md)
 
 ## 致谢与许可
 

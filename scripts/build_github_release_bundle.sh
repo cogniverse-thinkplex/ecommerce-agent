@@ -19,6 +19,13 @@ rsync -a \
   --exclude '**/.pytest_cache/' \
   --exclude '/dist/' \
   --exclude '/data/' \
+  --exclude '/docs/smoke/' \
+  --exclude '/docs/superpowers/' \
+  --exclude '/docs/plans/' \
+  --exclude '/docs/validation/' \
+  --exclude '/docs/final_implementation_roadmap.md' \
+  --exclude '/docs/operations/github-publication-checklist.md' \
+  --exclude '/docs/operations/upload-manifest-template.md' \
   --exclude '/Adaptive_Ecommerce_Agent_Fullstack_Observability_Development_Plan.docx' \
   --exclude '.DS_Store' \
   --exclude '**/__pycache__/' \
@@ -31,9 +38,6 @@ rsync -a \
   --include '/benchmarks/data/tau2/domains/retail/***' \
   --exclude '/benchmarks/data/***' \
   "$ROOT_DIR/" "$BUNDLE_DIR/"
-
-cp "$ROOT_DIR/docs/operations/upload-manifest-template.md" \
-  "$BUNDLE_DIR/UPLOAD_MANIFEST.md"
 
 "$ROOT_DIR/benchmarks/.venv/bin/python" \
   "$ROOT_DIR/scripts/verify_public_bundle.py" "$BUNDLE_DIR" "$ROOT_DIR"
