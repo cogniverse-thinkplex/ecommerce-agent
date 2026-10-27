@@ -9,7 +9,7 @@
 ![Tests](https://img.shields.io/badge/tests-500%2B%20checks-brightgreen)
 ![License](https://img.shields.io/badge/license-not%20selected-lightgrey)
 
-[快速开始](#快速开始) · [系统架构](#系统架构) · [产品功能](#产品功能) · [Agent 实战课程](docs/agent-course/README.md) · [生产运行手册](docs/operations/production-runbook.md)
+[课程目录](#agent-工程实战课程) · [快速开始](#快速开始) · [系统架构](#系统架构) · [产品功能](#产品功能) · [生产运行手册](docs/operations/production-runbook.md)
 
 ---
 
@@ -24,6 +24,29 @@
 - 高风险写操作必须由用户确认同一个 action fingerprint 后才会执行。
 - 开发人员通过工程控制台查看轨迹、Token、成本、失败原因、用户反馈和回归结果。
 - Policy RAG 使用 `bge-small-zh-v1.5 + BM25 + RRF`，回答可以追溯到政策依据。
+
+## Agent 工程实战课程
+
+> **课程文件夹：[`docs/agent-course/`](docs/agent-course/README.md)**
+> 从“聊天机器人”一路实现到可评测、可观测、可部署的业务 Agent。每课都包含原理图、真实代码入口、动手实验、验证命令与常见误区。
+
+| 课次 | 课程 | 主要内容 |
+| --- | --- | --- |
+| 01 | [从聊天机器人到业务 Agent](docs/agent-course/01-from-chatbot-to-agent.md) | Agent、状态、工具和业务闭环的基本边界 |
+| 02 | [Harness、状态与 Agent Loop](docs/agent-course/02-harness-state-loop.md) | ReAct/Loop、停止条件、事件与执行状态 |
+| 03 | [LLM Planner、Skills 与结构化提案](docs/agent-course/03-planner-skills.md) | 模型决策、Skill Routing、Tool Proposal |
+| 04 | [MCP 工具层与 Retail 业务](docs/agent-course/04-mcp-tools.md) | Tool Port、MCP Client/Server 与业务工具 |
+| 05 | [Policy Guard、权限与 HITL](docs/agent-course/05-policy-hitl.md) | 确定性策略、动作指纹和人工确认 |
+| 06 | [Context、Memory 与身份边界](docs/agent-course/06-context-memory.md) | 多轮上下文、指代恢复、身份与数据隔离 |
+| 07 | [BGE + BM25 + RRF Policy RAG](docs/agent-course/07-policy-rag.md) | 混合检索、融合排序、依据和离线评测 |
+| 08 | [客服业务闭环与产品界面](docs/agent-course/08-business-product.md) | 客服、订单、账户、反馈与人工接管 |
+| 09 | [评测、Reflection、回归与可观测性](docs/agent-course/09-evaluation-observability.md) | Reward、轨迹、结果证据、Bad Case 回归 |
+| 10 | [生产化、安全、备份与发布](docs/agent-course/10-production.md) | 健康检查、限流、日志、备份和发布验收 |
+
+课程首页还提供按学习目标划分的路线和贯穿案例：
+
+- [打开完整课程主页](docs/agent-course/README.md)
+- [查看课程参考资料](docs/agent-course/references.md)
 
 ## 产品功能
 
@@ -228,25 +251,6 @@ benchmarks/.venv/bin/python scripts/evaluate_policy_rag.py
 ```
 
 评测不只比较文字答案，还关注 Tool sequence 与参数、HITL 门禁、确认后的业务状态变化、Token/成本/时延/停止原因，以及 bad case 是否进入回归集。
-
-## Agent 实战课程
-
-如果你希望理解“为什么这样设计”，从 [Agent 工程实战课程](docs/agent-course/README.md) 开始：
-
-```text
-聊天机器人 vs Agent
-  → Harness 与 Loop
-  → Planner 与 Skills
-  → MCP Tools
-  → Guard 与 HITL
-  → Context 与 Memory
-  → Policy RAG
-  → 客服业务闭环
-  → Evaluation / Reflection / Observability
-  → Production
-```
-
-每课都有真实代码地图、动手实验、验证方法和常见误区，适合把该仓库作为 Agent 工程学习项目或作品集。
 
 ## 仓库结构
 
