@@ -1,0 +1,10 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>编辑收货地址</title><link rel="stylesheet" href="/account/address/address.css?v=20261023"><link rel="stylesheet" href="/customer-shell.css?v=20261024"></head><body>
+<header data-customer-shell data-title="地址编辑" data-back="/account/" data-back-label="返回账户设置"></header>
+<main><header><p>地址簿</p><h1 id="form-title">新增收货地址</h1><span>请填写真实有效的收货信息。</span></header>
+<form id="address-form">
+<div class="two"><div><label for="recipient-name">收货人</label><input id="recipient-name" maxlength="100" required></div><div><label for="phone">手机号码</label><input id="phone" inputmode="tel" maxlength="30" required></div></div>
+<label for="address1">详细地址</label><input id="address1" maxlength="200" required>
+<label for="address2">门牌、楼层等</label><input id="address2" maxlength="200">
+<div class="two"><div><label for="city">城市</label><input id="city" maxlength="100" required></div><div><label for="state">州 / 省</label><input id="state" maxlength="100" required></div><div><label for="country">国家</label><input id="country" maxlength="100" required></div><div><label for="zip">邮编</label><input id="zip" maxlength="30" required></div></div>
+<div class="actions"><a href="/account/">取消</a><button type="submit">保存地址</button></div><p id="status" role="status"></p>
+</form></main><script type="module" src="/customer-shell.js?v=20261026"></script><script type="module" src="/account/address/address.js?v=20261026"></script></body></html>

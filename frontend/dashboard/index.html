@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent 质量控制台</title>
+  <link rel="stylesheet" href="./styles.css?v=20261022" />
+  <link rel="stylesheet" href="./rag.css?v=20261024" />
+  <link rel="stylesheet" href="./operations.css?v=20261026" />
+</head>
+<body>
+  <button id="nav-toggle" class="icon-button nav-toggle" type="button" aria-label="打开导航" title="打开导航">☰</button>
+  <div id="nav-scrim" class="nav-scrim" hidden></div>
+  <div class="app-shell">
+    <aside id="sidebar" class="sidebar">
+      <div class="brand"><span class="brand-mark">EA</span><div><strong>Agent 工程台</strong><small>质量与运行控制</small></div></div>
+      <nav aria-label="开发工作台导航">
+        <a href="?view=quality" data-view="quality" aria-current="page"><span>⌂</span>质量总览</a>
+        <a href="?view=runs" data-view="runs"><span>◎</span>会话观测</a>
+        <a href="?view=regression" data-view="regression"><span>↻</span>回归中心</a>
+        <a href="?view=issues" data-view="issues"><span>!</span>问题中心</a>
+        <a href="?view=feedback" data-view="feedback"><span>□</span>用户反馈</a>
+        <a href="?view=handoffs" data-view="handoffs"><span>◇</span>人工接管</a>
+        <a href="?view=rag" data-view="rag"><span>⌕</span>Policy RAG</a>
+        <a href="?view=system" data-view="system"><span>⚙</span>系统管理</a>
+      </nav>
+      <div class="sidebar-footer"><a href="/support/">进入客服中心</a><button id="logout-button" type="button">退出登录</button></div>
+    </aside>
+    <main>
+      <header class="topbar"><div><p>开发人员控制台</p><h1 id="page-title">质量总览</h1></div><div class="top-actions"><span id="developer-identity">开发人员</span><button id="refresh-button" class="icon-button" type="button" title="刷新" aria-label="刷新">↻</button></div></header>
+      <div id="global-notice" class="notice" hidden></div>
+      <section class="view" data-dashboard-view="quality">
+        <div class="section-heading"><div><h2>运行质量</h2><p>基于正式客服、沙箱、基准与回归运行记录。</p></div><select id="quality-range" aria-label="统计范围"><option value="24h">最近 24 小时</option><option value="7d">最近 7 天</option><option value="30d">最近 30 天</option><option value="all">全部</option></select></div>
+        <div id="quality-metrics" class="metrics"></div>
+        <div class="two-column"><section class="panel"><div class="panel-heading"><h3>运行趋势</h3><span id="trend-status">按日</span></div><div id="quality-trends" class="trend-chart"></div></section><section class="panel"><div class="panel-heading"><h3>工具稳定性</h3><span>按调用量排序</span></div><div id="tool-quality" class="table-wrap"></div></section></div>
+        <div id="operations-metrics" class="metrics operations-metrics" aria-label="Agent 运营指标"></div>
+        <div class="two-column operations-grid"><section class="panel"><div class="panel-heading"><h3>活动告警</h3><span>来自当前筛选范围</span></div><div id="active-alerts"></div></section><section class="panel"><div class="panel-heading"><h3>版本对比</h3><span>模型 / 政策 / 数据</span></div><div id="version-comparison" class="table-wrap"></div></section></div>
+      </section>
+      <section class="view" data-dashboard-view="runs" hidden>
+        <div class="section-heading"><div><h2>会话观测</h2><p>查看每次 Agent 运行的状态、延迟、Token、成本和步骤证据。</p></div><select id="run-status-filter"><option value="">全部状态</option><option value="succeeded">成功</option><option value="failed">失败</option><option value="waiting_confirmation">等待确认</option><option value="running">运行中</option></select></div>
+        <div class="split-layout"><section class="panel"><div class="panel-heading"><h3>运行记录</h3><span id="runs-count">0 条</span></div><div id="runs-list" class="item-list"></div></section><section class="panel detail-panel"><div class="panel-heading"><h3>运行详情</h3><span>步骤时间线</span></div><div id="run-detail" class="empty">选择一条运行记录。</div></section></div>
+      </section>
+      <section class="view" data-dashboard-view="regression" hidden>
+        <div class="section-heading"><div><h2>回归中心</h2><p>管理稳定用例，批量验证 Rule 或 LLM Planner，并保留结果历史。</p></div><button id="new-case-button" type="button">新建用例</button></div>
+        <form id="case-form" class="panel form-grid" hidden><div class="panel-heading form-heading"><h3>新建 tau2 用例</h3><button id="close-case-form" class="icon-button" type="button" aria-label="关闭" title="关闭">×</button></div><label>名称<input name="name" required maxlength="160" /></label><label>任务 ID<input name="task_id" required /></label><label class="wide">说明<textarea name="description" rows="2"></textarea></label><button type="submit">创建并激活</button></form>
+        <div class="regression-toolbar panel"><div><strong>批量运行</strong><span id="selected-case-count">已选 0 项</span></div><label>Planner<select id="batch-planner"><option value="rule">规则规划器</option><option value="llm">LLM Planner</option></select></label><label>最大步骤<input id="batch-max-steps" type="number" value="12" min="1" max="20" /></label><button id="run-batch-button" type="button">运行所选用例</button></div>
+        <section class="panel"><div class="panel-heading"><h3>用例库</h3><span id="cases-count">0 个用例</span></div><div id="case-list" class="case-list"></div></section>
+        <section id="batch-result-panel" class="panel" hidden><div class="panel-heading"><h3>最近批次结果</h3><span id="batch-status"></span></div><div id="batch-results"></div></section>
+      </section>
+      <section class="view" data-dashboard-view="issues" hidden>
+        <div class="section-heading"><div><h2>问题中心</h2><p>聚合运行错误，转成回归用例，并以通过结果验证修复。</p></div></div>
+        <div class="split-layout"><section class="panel"><div class="panel-heading"><h3>错误列表</h3><span id="issues-count">0 条</span></div><div id="issues-list" class="item-list"></div></section><section class="panel detail-panel"><div class="panel-heading"><h3>问题详情</h3><span>处理与验证</span></div><div id="issue-detail" class="empty">选择一个问题。</div></section></div>
+      </section>
+      <section class="view" data-dashboard-view="feedback" hidden>
+        <div class="section-heading"><div><h2>用户反馈</h2><p>跟踪满意度、问题类型和处理状态，将负面反馈沉淀为测试。</p></div></div>
+        <div class="split-layout"><section class="panel"><div class="panel-heading"><h3>反馈列表</h3><span id="feedback-count">0 条</span></div><div id="feedback-list" class="item-list"></div></section><section class="panel detail-panel"><div class="panel-heading"><h3>反馈详情</h3><span>处理台</span></div><div id="feedback-detail" class="empty">选择一条反馈。</div></section></div>
+      </section>
+      <section class="view" data-dashboard-view="handoffs" hidden>
+        <div class="section-heading"><div><h2>人工接管</h2><p>处理客户主动申请或 Agent 升级的会话，人工处理中自动写操作保持暂停。</p></div><select id="handoff-status-filter"><option value="">全部状态</option><option value="open">待接入</option><option value="in_progress">处理中</option><option value="resolved">已解决</option><option value="cancelled">已取消</option></select></div>
+        <div class="split-layout"><section class="panel"><div class="panel-heading"><h3>接管队列</h3><span id="handoffs-count">0 条</span></div><div id="handoffs-list" class="item-list"></div></section><section class="panel detail-panel"><div class="panel-heading"><h3>工单详情</h3><span>会话与处理</span></div><div id="handoff-detail" class="empty">选择一条人工工单。</div></section></div>
+      </section>
+      <section class="view" data-dashboard-view="rag" hidden>
+        <div class="section-heading"><div><h2>Policy RAG</h2><p>验证政策语料、BGE 与 BM25 召回，以及 RRF 融合排序。</p></div></div>
+        <div id="rag-status" class="system-grid"></div>
+        <form id="rag-debug-form" class="panel rag-debug-form"><label>测试查询<input id="rag-query" value="七天无理由退货需要满足什么条件" maxlength="300" required /></label><button type="submit">运行检索</button></form>
+        <section class="panel"><div class="panel-heading"><h3>融合结果</h3><span id="rag-result-status">等待查询</span></div><div id="rag-results" class="table-wrap"><p class="empty">输入政策问题以检查召回结果。</p></div></section>
+      </section>
+      <section class="view" data-dashboard-view="system" hidden>
+        <div class="section-heading"><div><h2>系统管理</h2><p>集中查看运行环境、数据状态与开发人员权限。</p></div></div>
+        <div id="system-components" class="system-grid"></div>
+        <div class="two-column system-lower"><section class="panel"><div class="panel-heading"><h3>开发人员</h3><span id="developers-count">0 个账户</span></div><div id="developers-list" class="item-list"></div></section><form id="developer-form" class="panel form-stack"><div class="panel-heading"><h3>创建开发人员</h3><span>首次登录需改密</span></div><label>姓名<input name="display_name" required /></label><label>邮箱<input name="email" type="email" required /></label><label>临时密码<input name="temporary_password" type="password" minlength="12" required /></label><button type="submit">创建账户</button></form></div>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="./app.js?v=20261026-operations"></script>
+</body>
+</html>

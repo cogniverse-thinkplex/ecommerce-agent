@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>在线客服</title>
+    <link rel="stylesheet" href="/support/styles.css?v=20261024-order-center" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="history-panel" id="history-panel" aria-label="历史会话">
+        <a class="sidebar-account" href="/account/" aria-label="编辑个人信息">
+          <span class="account-avatar" id="sidebar-account-avatar" aria-hidden="true">客</span>
+          <span><strong id="sidebar-account-name">正在读取账户</strong><small>查看并编辑个人信息</small></span>
+          <span class="edit-profile" aria-hidden="true">编辑</span>
+        </a>
+        <button class="new-chat" id="new-chat" type="button">＋ 新建会话</button>
+        <nav id="conversation-list" aria-label="会话列表"></nav>
+        <div class="sidebar-actions">
+          <a class="sidebar-link" href="/orders/">我的订单</a>
+          <a class="sidebar-link" href="/help/">购物帮助</a>
+          <a class="sidebar-link" href="/account/spending/">消费分析</a>
+          <button class="manage-groups" id="manage-groups" type="button">管理分组</button>
+          <a class="sidebar-link" href="/support/feedback/">问题反馈</a>
+        </div>
+      </aside>
+
+      <main class="chat-panel">
+        <header class="chat-header">
+          <button class="icon-button mobile-only" id="history-toggle" type="button" aria-label="打开历史会话">☰</button>
+          <div>
+            <h1>在线客服</h1>
+            <p><span class="status-dot" aria-hidden="true"></span><span id="connection-label">服务可用</span></p>
+          </div>
+          <div class="header-human-service">
+            <button class="transfer-button" id="transfer-to-human" type="button">转人工</button>
+            <span class="handoff-status" id="handoff-status" role="status"></span>
+          </div>
+          <button class="icon-button logout-button" id="logout-button" type="button" aria-label="退出登录">退出</button>
+        </header>
+
+        <section class="message-stream" id="message-stream" aria-label="客服对话" aria-live="polite"></section>
+
+        <div class="notice" id="notice" role="status" hidden></div>
+        <form class="composer" id="composer">
+          <label class="sr-only" for="message-input">输入消息</label>
+          <textarea id="message-input" rows="1" maxlength="8000" placeholder="请输入您的问题，例如：查询订单 #W2378156" required></textarea>
+          <button class="send-button" id="send-button" type="submit" aria-label="发送消息">发送</button>
+        </form>
+      </main>
+    </div>
+    <button class="drawer-scrim" id="drawer-scrim" type="button" aria-label="关闭历史会话" hidden></button>
+    <dialog class="group-dialog" id="group-dialog"><form method="dialog" class="dialog-heading"><h2>管理会话分组</h2><button type="submit" aria-label="关闭">×</button></form><div id="group-manager"></div><form id="new-group-form" class="new-group-form"><label for="new-group-name">新分组名称</label><div><input id="new-group-name" maxlength="80" required /><button type="submit">创建</button></div></form></dialog>
+    <dialog class="group-dialog move-dialog" id="move-conversation-dialog"><form method="dialog" class="dialog-heading"><h2>移动会话</h2><button type="submit" aria-label="关闭">×</button></form><form id="move-conversation-form" class="move-conversation-form"><label for="move-group-select">选择目标分组</label><select id="move-group-select"><option value="">其他会话</option></select><div class="dialog-actions"><button type="button" id="cancel-move-conversation">取消</button><button type="submit" class="primary-command">移动</button></div></form></dialog>
+    <script type="module" src="/support/app.js?v=20261024-order-center"></script>
+  </body>
+</html>

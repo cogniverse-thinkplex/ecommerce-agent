@@ -1,0 +1,40 @@
+.DS_Store
+.env
+.env.production
+*.log
+.idea/
+.vscode/
+.superpowers/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local databases, backups and downloaded models
+data/*.db
+data/*.db-*
+data/backups/
+data/models/
+
+# Local benchmark/runtime artifacts. Keep only the Retail fixture required by
+# the demo; other domains and official result archives are downloaded upstream.
+benchmarks/.venv/
+benchmarks/data/simulations/
+benchmarks/data/**
+!benchmarks/data/tau2/
+!benchmarks/data/tau2/domains/
+!benchmarks/data/tau2/domains/retail/
+!benchmarks/data/tau2/domains/retail/**
+benchmarks/web/**/node_modules/
+
+# OS/editor/runtime noise
+**/.DS_Store
+*.pid
+*.sock
+
+# Generated public release bundles
+dist/

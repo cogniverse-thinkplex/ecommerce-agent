@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f7f7f4"><title>登录 · 电商服务中心</title><link rel="stylesheet" href="/auth/auth.css?v=20261023-ac"></head>
+<body data-page="login">
+<main class="auth-shell">
+  <section class="auth-visual" aria-label="电商服务中心"><div class="visual-header"><span class="brand-mark" aria-hidden="true">E</span><span>电商服务中心</span></div><div class="visual-copy"><p>订单、配送与售后</p><h1>需要帮助时，<br>我们一直在这里。</h1></div></section>
+  <section class="auth-panel" aria-labelledby="page-title"><div class="auth-content">
+    <div class="auth-heading"><h2 id="page-title">欢迎回来</h2><p>使用您的账户继续。</p></div>
+    <form id="auth-form" novalidate>
+      <div class="field"><label for="email">邮箱</label><input id="email" name="email" type="email" autocomplete="username" inputmode="email" placeholder="name@example.com" required></div>
+      <div class="field"><label for="password">密码</label><div class="password-field"><input id="password" name="password" type="password" autocomplete="current-password" placeholder="输入密码" required><button class="password-toggle" type="button" data-password-toggle="password" aria-label="显示密码" aria-pressed="false"><span aria-hidden="true">显示</span></button></div></div>
+      <p id="form-error" class="form-error" role="alert" tabindex="-1" hidden></p>
+      <button class="submit-button" type="submit" data-label="登录" data-pending-label="正在登录…"><span>登录</span></button>
+    </form>
+    <p class="auth-link">还没有账户？<a href="/register/">创建账户</a></p>
+  </div><p class="auth-footer">安全连接 · 会话信息仅用于提供服务</p></section>
+</main><script type="module" src="/auth/auth.js?v=20261023-ac"></script>
+</body></html>

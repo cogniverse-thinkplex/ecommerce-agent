@@ -1,0 +1,63 @@
+services:
+  retail-mcp:
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    mem_limit: 1g
+    cpus: 1.0
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  api:
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    mem_limit: 2g
+    cpus: 2.0
+    env_file:
+      - path: .env.production
+        required: true
+    environment:
+      ECOM_ENV: production
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backup:
+    build: .
+    command: ["python", "scripts/backup_daemon.py"]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    env_file:
+      - path: .env.production
+        required: true
+    environment:
+      ECOM_AGENT_SQLITE_PATH: /app/data/ecommerce_agent.db
+      ECOM_BACKUP_DIR: /app/data/backups
+      ECOM_BACKUP_INTERVAL_SECONDS: ${ECOM_BACKUP_INTERVAL_SECONDS:-86400}
+      ECOM_BACKUP_RETENTION: ${ECOM_BACKUP_RETENTION:-14}
+    volumes:
+      - agent-data:/app/data
+    depends_on:
+      api:
+        condition: service_healthy
+    mem_limit: 256m
+    cpus: 0.25
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+

@@ -1,0 +1,5 @@
+.rag-debug-form { display: flex; align-items: end; gap: 12px; margin: 16px 0; }
+.rag-debug-form label { flex: 1; color: var(--muted); font-size: 13px; }
+.rag-debug-form input { display: block; width: 100%; margin-top: 5px; padding: 9px; background: #fff; }
+.rag-debug-form button { white-space: nowrap; }
+@media (max-width: 760px) { .rag-debug-form { align-items: stretch; flex-direction: column; } }

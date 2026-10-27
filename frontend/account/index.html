@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>账户资料</title>
+    <link rel="stylesheet" href="/account/account.css?v=20261023-address-book" />
+    <link rel="stylesheet" href="/customer-shell.css?v=20261024" />
+  </head>
+  <body>
+    <header data-customer-shell data-title="账户设置" data-back-label="返回客服中心"></header>
+    <main>
+      <header class="page-heading"><p>账户中心</p><h1>个人资料与安全</h1><span>管理您的显示信息、账户关联和登录安全。</span></header>
+      <section class="settings-section" aria-labelledby="profile-title">
+        <div class="section-copy"><h2 id="profile-title">个人资料</h2><p>用于客服中心和人工服务中的称呼。</p></div>
+        <form id="profile-form">
+          <label for="display-name">姓名</label>
+          <input id="display-name" name="display_name" maxlength="100" required />
+          <button type="submit">保存资料</button>
+          <p id="profile-status" role="status"></p>
+        </form>
+      </section>
+      <section class="settings-section" aria-labelledby="account-title">
+        <div class="section-copy"><h2 id="account-title">账户信息</h2><p>登录邮箱与购买账户绑定状态为只读信息。</p></div>
+        <div class="account-details">
+          <label for="email">登录邮箱</label><input id="email" type="email" readonly />
+          <div class="status-row"><span>购买账户</span><strong id="retail-status">读取中</strong></div>
+        </div>
+      </section>
+      <section class="settings-section" aria-labelledby="address-title">
+        <div class="section-copy"><h2 id="address-title">收货地址</h2><p>管理常用地址；默认地址会用于后续订单。</p></div>
+        <div class="address-book">
+          <div class="section-toolbar"><span>地址簿</span><a class="primary-link" href="/account/address/">新增地址</a></div>
+          <div id="address-list" class="address-list" aria-live="polite"></div>
+          <p id="address-status" role="status"></p>
+        </div>
+      </section>
+      <section class="settings-section" aria-labelledby="password-title">
+        <div class="section-copy"><h2 id="password-title">安全设置</h2><p>修改密码后，当前登录会话会自动更新。</p></div>
+        <form id="password-form">
+          <label for="current-password">当前密码</label>
+          <input id="current-password" type="password" autocomplete="current-password" required />
+          <label for="new-password">新密码</label>
+          <input id="new-password" type="password" autocomplete="new-password" required />
+          <button type="submit">更新密码</button>
+          <p id="password-status" role="status"></p>
+        </form>
+      </section>
+    </main>
+    <script type="module" src="/customer-shell.js?v=20261026"></script>
+    <script type="module" src="/account/account.js?v=20261026"></script>
+  </body>
+</html>

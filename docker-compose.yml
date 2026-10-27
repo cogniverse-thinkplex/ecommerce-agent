@@ -1,0 +1,39 @@
+services:
+  retail-mcp:
+    build: .
+    command: ["uvicorn", "app.mcp.retail_server:app", "--host", "0.0.0.0", "--port", "8765"]
+    environment:
+      RETAIL_MCP_HOST: 0.0.0.0
+      RETAIL_MCP_PORT: 8765
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1',8765),2); s.close()"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ECOM_AGENT_STORE: sqlite
+      ECOM_AGENT_SQLITE_PATH: /app/data/ecommerce_agent.db
+      ECOM_AGENT_TOOL_BACKEND: mcp
+      ECOM_AGENT_MCP_URL: http://retail-mcp:8765/mcp
+      ECOM_AGENT_MCP_TIMEOUT_SECONDS: 30
+    volumes:
+      - agent-data:/app/data
+    depends_on:
+      retail-mcp:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready',timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  agent-data:

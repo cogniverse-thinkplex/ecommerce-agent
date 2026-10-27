@@ -1,0 +1,16 @@
+.git
+.idea
+.pytest_cache
+.superpowers
+.env
+data
+docs/smoke
+benchmarks/.venv
+benchmarks/data/simulations
+benchmarks/data/**
+!benchmarks/data/tau2/
+!benchmarks/data/tau2/domains/
+!benchmarks/data/tau2/domains/retail/
+!benchmarks/data/tau2/domains/retail/**
+**/__pycache__
+*.pyc

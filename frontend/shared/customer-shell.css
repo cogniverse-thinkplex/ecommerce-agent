@@ -1,0 +1,17 @@
+:root{--customer-ink:#172126;--customer-muted:#617078;--customer-line:#d6dfe1;--customer-bg:#f3f6f6;--customer-surface:#fff;--customer-primary:#176b66}
+body{color:var(--customer-ink);background:var(--customer-bg)}
+.customer-header{height:64px;display:flex;align-items:center;gap:28px;padding:0 max(20px,calc((100% - 1120px)/2));background:var(--customer-surface);border-bottom:1px solid var(--customer-line)}
+.customer-back{color:var(--customer-primary);font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap}
+.customer-back:hover{color:#105752}
+.customer-page-title{padding-left:28px;border-left:1px solid var(--customer-line);font-size:15px;font-weight:750;white-space:nowrap}
+main>.page-heading{min-height:126px;padding-top:30px;padding-bottom:24px;margin-bottom:0}
+main>.page-heading p{color:var(--customer-primary);font-size:12px;font-weight:750}
+main>.page-heading h1{font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif;font-size:30px;font-weight:700;line-height:1.25;letter-spacing:0}
+.status-tabs button.active{border-color:var(--customer-primary);color:var(--customer-primary)}
+.scope{border-left-color:var(--customer-primary)}
+.customer-state{min-height:150px;display:grid;place-items:center;align-content:center;gap:7px;padding:28px;text-align:center;color:var(--customer-muted)}
+.customer-state strong{color:var(--customer-ink);font-size:15px}.customer-state small{max-width:440px}.customer-state-icon{width:26px;height:26px;border:2px solid var(--customer-line);border-radius:50%}
+.customer-state-loading .customer-state-icon{border-top-color:var(--customer-primary);animation:customer-spin .8s linear infinite}.customer-state-empty .customer-state-icon{border-radius:6px}.customer-state-error .customer-state-icon{border-color:#b94b3d;position:relative}.customer-state-error .customer-state-icon:after{content:"!";color:#b94b3d;font-weight:800}
+.customer-state-action{margin-top:5px;padding:7px 13px;border:1px solid var(--customer-line);border-radius:6px;background:#fff;color:var(--customer-primary);font-weight:700;cursor:pointer}
+@keyframes customer-spin{to{transform:rotate(360deg)}}
+@media(max-width:760px){.customer-header{gap:14px;padding:0 14px}.customer-page-title{padding-left:14px}main>.page-heading{min-height:106px;padding-top:24px;padding-bottom:18px}main>.page-heading h1{font-size:26px}}

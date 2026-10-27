@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>问题反馈</title>
+    <link rel="stylesheet" href="/support/feedback/feedback.css?v=20261022" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a href="/support/" aria-label="返回客服中心">← 返回客服中心</a>
+      <strong>问题反馈</strong>
+    </header>
+    <main>
+      <h1>告诉我们遇到的问题</h1>
+      <p class="subtle">反馈将交给开发人员排查。关联会话可以帮助我们更快定位问题。</p>
+      <form id="feedback-form">
+        <label for="feedback-category">问题类型</label>
+        <select id="feedback-category" required>
+          <option value="incorrect">回答不正确</option>
+          <option value="unclear">表达不清楚</option>
+          <option value="slow">响应太慢</option>
+          <option value="tool_failure">操作没有完成</option>
+          <option value="interface">界面使用问题</option>
+          <option value="other">其他问题</option>
+        </select>
+        <label for="feedback-conversation">关联会话（可选）</label>
+        <select id="feedback-conversation"><option value="">不关联会话</option></select>
+        <label for="feedback-description">问题描述</label>
+        <textarea id="feedback-description" rows="8" maxlength="2000" required placeholder="请描述发生了什么、您原本希望得到什么结果"></textarea>
+        <div class="form-footer"><span id="character-count">0 / 2000</span><button type="submit">提交反馈</button></div>
+        <p id="feedback-status" role="status" aria-live="polite"></p>
+      </form>
+    </main>
+    <script type="module" src="/support/feedback/feedback.js?v=20261022"></script>
+  </body>
+</html>
