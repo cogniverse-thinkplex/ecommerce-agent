@@ -97,9 +97,9 @@ flowchart TD
 4. Planner 生成 `cancel_pending_order` 的结构化工具提案；
 5. Guard 识别这是数据库写操作，不能直接执行；
 6. 前端展示动作详情，要求用户明确确认；
-7. 确认必须匹配原提案的 action fingerprint，防止换参；
+7. 用户提交服务端 `action_id`；当前 Guard 用工具名与参数 fingerprint 匹配原提案；
 8. MCP 工具执行取消操作；
-9. Agent 重新读取订单状态，验证它确实变为 cancelled；
+9. 当前 Executor 通过 Retail 数据库哈希确认发生状态变化；目标字段级后置条件验证仍是演进项；
 10. Trace 保存决策、门禁、执行和回复事件；
 11. Telemetry 记录时延、Token、成本和停止原因；
 12. 如果失败，工程人员把该会话加入回归集。
@@ -115,7 +115,7 @@ flowchart TD
 | [03](03-planner-skills.md) | 模型怎样提出可执行动作？ | Planner、Skill、Tool Proposal | `proposal_generator.py`、`skills.py` |
 | [04](04-mcp-tools.md) | 工具如何标准化并隔离业务后端？ | Port/Adapter 与 MCP | `tools/`、`mcp/retail_server.py` |
 | [05](05-policy-hitl.md) | 谁决定动作是否允许执行？ | Policy Guard 与 HITL | `policy/guard.py`、`guarded_executor.py` |
-| [06](06-context-memory.md) | Agent 如何记住“刚才那个订单”？ | Context、Memory、身份边界 | `session_store.py`、`order_identity.py` |
+| [06](06-context-memory.md) | Agent 如何记住“刚才那个订单”？ | Context、Memory、身份边界 | `session_store.py`、`proposal_generator.py` |
 | [07](07-policy-rag.md) | Agent 如何依据政策回答？ | BGE + BM25 + RRF | `rag/`、`help/service.py` |
 | [08](08-business-product.md) | 如何形成用户可用的业务闭环？ | 流式 UI、验真、人工接管 | `support/`、`orders/`、`frontend/` |
 | [09](09-evaluation-observability.md) | 如何知道 Agent 真的变好了？ | 结果评测、回归和观测 | `evaluation/`、`telemetry/` |
@@ -177,7 +177,7 @@ flowchart TD
 课程默认从项目根目录运行命令，并使用已有 Conda/虚拟环境。常用入口：
 
 ```bash
-./scripts/start_product.sh
+./scripts/run_local_product.sh
 ./scripts/test_backend.sh -q
 BASE_URL=http://127.0.0.1:8020 ./scripts/validate_product_stack.sh
 ```
@@ -189,7 +189,7 @@ BASE_URL=http://127.0.0.1:8020 ./scripts/validate_product_stack.sh
 读完不等于学会。你至少应完成以下成果：
 
 - 能从客服请求画出 Planner → Guard → MCP → Observation 的时序图；
-- 能解释一次写操作为什么必须绑定 action fingerprint；
+- 能解释当前工具名+参数 fingerprint 的作用及其尚未覆盖的用户、会话、过期与资源版本边界；
 - 能定位一个会话的状态、Trace、业务结果和遥测指标；
 - 能构造一个失败任务并加入回归；
 - 能解释 BGE、BM25 与 RRF 各自解决的问题；

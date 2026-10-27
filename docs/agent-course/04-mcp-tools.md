@@ -101,6 +101,8 @@ flowchart LR
 - `backend/app/mcp/retail_server.py` 暴露 MCP Server；
 - `backend/app/tools/guarded_executor.py` 在调用前强制策略检查。
 
+当前 MCP Adapter 使用 Streamable HTTP 连接 `/mcp`，并为调用建立 `ClientSession`。课程使用 Port/Adapter 描述上层边界，不代表所有 MCP transport 都与当前实现相同。
+
 ## 执行链路
 
 Planner 只产生 `cancel_pending_order` 提案，不接触数据库。Executor 依据 Port 调用，MCP Adapter 将参数编码为协议请求，Server 调用 Retail 环境并返回 observation。Runtime 把 observation 追加到状态和 Trace，必要时再发起一次读取验证。

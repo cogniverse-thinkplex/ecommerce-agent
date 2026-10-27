@@ -18,8 +18,8 @@ flowchart LR
     Q --> Sparse[BM25 关键词检索]
     Dense --> RRF[RRF 融合]
     Sparse --> RRF
-    RRF --> Filter[去重 / top-k / 元数据过滤]
-    Filter --> Context[带来源的政策上下文]
+    RRF --> TopK[top-k]
+    TopK --> Context[带来源的政策上下文]
     Context --> Answer[回答生成]
 ```
 
@@ -106,6 +106,8 @@ flowchart LR
 
 如果 embedding 模型不可用，系统可以显式降级到 BM25；降级状态应出现在健康信息或工程控制台，而不是静默让召回质量变化。
 
+当前查询链实际完成 BM25 top-20、dense top-20、RRF 与最终 top-k；尚没有查询时的显式去重、政策版本/生效时间过滤或 reranker。这些属于生产知识库的演进能力。
+
 ## 设计取舍
 
 选择 `bge-small-zh-v1.5` 是本地资源与中文语义效果的平衡，不代表它在所有数据上最优。小模型启动快、可离线运行；高质量 reranker 可能提升精度，但增加时延和依赖。
@@ -131,7 +133,7 @@ benchmarks/.venv/bin/python scripts/evaluate_policy_rag.py
 
 ## 评测方法
 
-至少使用 Recall@k、MRR、来源正确率和答案依据覆盖率。离线检索指标高不代表最终回答好，因此还要检查引用是否支持结论、是否遗漏例外，以及模型是否加入语料中不存在的承诺。
+当前自动评测实现 Recall@5、MRR@10 和 miss rate。生产级评测还应增加来源正确率、答案依据覆盖率、无答案识别和新鲜度；这些目前是建议指标，尚未全部自动化。
 
 ## 知识检查
 

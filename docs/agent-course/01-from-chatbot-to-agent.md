@@ -113,7 +113,7 @@ stateDiagram-v2
 
 ## 执行链路
 
-以“取消刚才那个办公椅订单”为例：身份从登录态进入 session；历史 observation 提供订单候选；Planner 恢复目标并提出取消；Guard 返回 `requires_confirmation`；前端展示订单与原因；确认后 Executor 调用 MCP；系统重新读取订单并验证状态；Composer 基于证据生成回复。
+以“取消刚才那个办公椅订单”为例：身份从登录态进入 session；历史 observation 提供订单候选；Planner 恢复目标并提出取消；Guard 返回 `requires_confirmation`；前端展示订单与原因；确认后 Executor 调用 MCP；当前实现比较执行前后的 Retail 数据库哈希，证明环境发生变化，再由 Composer 生成回复。字段级验证“目标订单状态是否确实为 cancelled”是更强的后置条件，也是当前待补能力。
 
 关键点是：同一个模型不同时承担“理解请求、批准请求、执行请求、证明执行成功”。职责分离让每个环节可以单独测试。
 

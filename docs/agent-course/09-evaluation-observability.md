@@ -90,7 +90,7 @@ flowchart LR
 
 Agent 评测必须分层。文本质量回答“说得怎么样”；轨迹评测回答“采取了哪些动作”；策略评测回答“是否遵守权限与确认”；业务结果回答“环境是否真的达到目标”。最终上线门禁不能只依赖其中一层。
 
-Reward 是任务成功的数值信号，不是训练时才存在。tau2 任务通常根据目标状态和交互结果给出 reward。项目还补充 exact trajectory、business success、confirmation verified 和 state changed，避免单一分数掩盖原因。
+Reward 是任务成功的数值信号，不是训练时才存在。tau2 任务通常根据目标状态和交互结果给出 reward。项目还补充 exact trajectory、business success、confirmation verified 和 state changed；需要注意，当前 `state_changed` 来自整个 Retail 数据库哈希变化，并不等价于目标字段级后置条件已经满足。
 
 ```mermaid
 flowchart BT
@@ -120,7 +120,7 @@ Reflection 应基于失败证据产生诊断候选，例如“Skill 路由错误
 
 ## 执行链路
 
-一次运行保存任务版本、Planner、模型、工具后端、Trace、usage 和业务结果。Evaluator 将实际动作与 benchmark 期望比较，并读取最终环境状态。失败矩阵按 planner terminal、tool error、policy denial、action deviation、outcome failure 等分类。工程人员把真实会话加入回归集，修复后同时运行目标 case 和全量集。
+一次运行保存任务版本、Planner、模型、工具后端、Trace、usage 和业务结果。Evaluator 将实际动作与 benchmark 期望比较；确认写操作后，当前证据是执行前后数据库哈希是否变化，而不是重新断言目标订单字段。失败矩阵按 planner terminal、tool error、policy denial、action deviation、outcome failure 等分类。工程人员把真实会话加入回归集，修复后同时运行目标 case 和全量集。
 
 成本来自 provider usage 与价格目录。Rule Planner 没有模型调用，因此 Token 为 0、目录价可能 N/A 是合理事实；LLM usage 缺失时应显示未知，而不是伪造 0。
 

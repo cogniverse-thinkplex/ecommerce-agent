@@ -34,7 +34,7 @@ Skill 不应复制底层工具实现；它提供的是业务路由与约束。
 
 - [proposal_generator.py](../../backend/app/agent/proposal_generator.py)：LLM/Rule proposal generator。
 - [skills.py](../../backend/app/agent/skills.py)：Skill catalog 与选择。
-- [order_identity.py](../../backend/app/agent/order_identity.py)：订单实体恢复。
+- [order_identity.py](../../backend/app/agent/order_identity.py)：订单 ID 规范化；更完整的上下文恢复位于 Planner 与 Runtime。
 - [response_quality.py](../../backend/app/agent/response_quality.py)：输出质量约束。
 - [.env.example](../../.env.example)：默认 LLM 配置。
 
@@ -79,10 +79,9 @@ Skill 是任务局部的决策边界：它提供目标、适用条件、允许�
 
 ```mermaid
 flowchart LR
-    C[Context] --> R[Skill Router]
-    R --> SK[Selected Skill]
-    SK --> LLM[LLM Planner]
-    LLM --> V{Schema valid?}
+    C[Context + all tools + skills] --> LLM[LLM Planner]
+    LLM --> R[Skill Route Validation]
+    R --> V{Schema valid?}
     V -->|否| REC[Repair / Fail]
     V -->|是| P[Tool Proposal]
     P --> G[Policy Guard]
@@ -92,19 +91,19 @@ flowchart LR
 
 - `backend/app/agent/proposal_generator.py` 封装 rule/LLM Planner 和 usage；
 - `backend/app/agent/skills.py` 定义任务 Skill 与可用工具；
-- `backend/app/agent/order_identity.py` 辅助恢复订单目标；
+- `backend/app/agent/order_identity.py` 只负责订单 ID 规范化；目标恢复主要位于 `proposal_generator.py`、State 与 Runtime fallback；
 - `backend/app/agent/audit.py` 记录 rationale 和 Planner 元数据；
 - `backend/app/agent/response_composer.py` 将证据组织成最终回复。
 
 ## 执行链路
 
-输入“取消刚才那个订单”时，Router 根据会话中已有订单 observation 选择订单售后 Skill。Planner 看到允许工具及 schema，生成取消提案。参数恢复优先使用结构化上下文中的订单 ID，而不是让模型凭文本猜测。提案通过 schema 校验后才进入 Guard。
+输入“取消刚才那个订单”时，当前 LLM Planner 会同时看到完整工具与 Skill 列表，并输出 `skill_id`、`skill_action` 和工具提案；Runtime 随后用 `route_skill_action()` 做确定性解析与校验。参数恢复会利用结构化上下文与 fallback，而不是只靠文本猜测。当前并不存在一个在模型调用前先缩小工具集合的独立 Router。
 
 Rule Planner 在产品默认路径中不是主角，但它是确定性对照组：可以验证 Tool/Guard/MCP 链路，而不把模型波动混入故障定位。真实 LLM 的性能和成本则需要单独观测。
 
 ## 设计取舍
 
-把所有工具一次性暴露给模型实现最简单，但工具越多，名称相似、参数冲突和误选越多。Skill routing 用较小的动作空间换取更稳定的决策。代价是 Router 自身也需要评测，错误路由可能让正确工具根本不可见。
+把所有工具一次性暴露给模型实现最简单，但工具越多，名称相似、参数冲突和误选越多。当前项目采用“模型选择 Skill、确定性代码后置校验”，还没有通过前置 Router 真正缩小模型动作空间。未来若增加前置路由，可以换取更稳定的决策，但 Router 自身也必须评测，错误路由可能让正确工具根本不可见。
 
 项目保留有限 repair，而不做无限自我修复。无界 repair 会掩盖 schema 或 prompt 问题，并增加成本。恢复次数、错误类型和最终停止原因都应进入 Trace。
 

@@ -32,7 +32,7 @@ flowchart TB
 - 基于数据库的 customer/developer 账户和 session；
 - 首次登录修改默认开发人员密码；
 - 登录限流、安全响应头和 Request ID；
-- JSON 日志、错误收集与敏感字段脱敏；
+- 本地 JSON 日志、SQLite 错误/遥测记录与敏感字段脱敏；尚无集中日志和跨服务 Trace；
 - `/health` 与 `/ready`；
 - SQLite 备份、恢复和周期备份脚本；
 - pip-audit、Bandit 和 secret scan；
@@ -54,7 +54,7 @@ flowchart TB
 ./scripts/production_acceptance.sh
 ```
 
-它应覆盖：配置检查、测试、产品栈、备份恢复、安全扫描和服务状态。验收失败应阻止发布，而不是只记录警告。
+当前脚本覆盖运行配置检查、部分 operations/API 测试、临时 SQLite 备份恢复、安全扫描和 operational checks；完整产品栈另用 `validate_product_stack.sh` 验证。两者失败都应阻止发布，而不是只记录警告。
 
 ## GitHub 发布清单
 
@@ -96,7 +96,7 @@ flowchart TB
 
 生产化不是“把开发服务器放到云上”，而是为不可靠依赖、恶意输入、并发请求、数据损坏和人员操作建立防线。Agent 还多了模型波动、Token 成本、工具副作用和 prompt injection 等风险。
 
-生产就绪可以分成六个面：配置与秘密、身份与授权、可靠性、可观测性、数据保护、发布与恢复。健康检查只说明进程活着；ready 检查还应确认数据库、模型配置和关键工具后端可用。
+生产就绪可以分成六个面：配置与秘密、身份与授权、可靠性、可观测性、数据保护、发布与恢复。健康检查只说明进程活着。当前 `/ready` 检查 SQLite 和工具目录 `list_tools()`；模型配置与真实 provider 连通性尚未纳入 readiness。
 
 ```mermaid
 flowchart TD
@@ -117,7 +117,7 @@ flowchart TD
 
 - `backend/app/operations/config.py` 集中读取运行配置；
 - `backend/app/operations/health.py` 提供健康与就绪状态；
-- `backend/app/operations/rate_limit.py` 进行请求限流；
+- `backend/app/operations/rate_limit.py` 进行登录失败限流，并非全 API/LLM/MCP 限流；
 - `backend/app/operations/redaction.py` 清理敏感字段；
 - `backend/app/operations/sqlite_backup.py` 负责一致性备份；
 - `backend/app/auth/` 管理密码、会话和角色；
@@ -126,7 +126,7 @@ flowchart TD
 
 ## 执行链路
 
-启动时配置层验证必要变量，不从代码读取真实密钥。应用建立数据库并执行迁移，ready 检查确认依赖。请求经过限流与认证后进入 API。模型和 MCP 调用设置超时，失败转化为可观测错误或安全降级。日志在写出前脱敏。定时备份只有在恢复演练通过后才算有效。
+启动时配置层验证必要变量，不从代码读取真实密钥。应用建立数据库并执行迁移，当前 ready 检查数据库与工具目录。登录入口经过失败限流，其他 API 仍需独立的全局限流策略。模型和 MCP 调用失败转化为可观测错误或安全降级。日志在写出前脱敏。当前观测以本地日志和 SQLite telemetry/issue 为主，尚未接入集中日志或 OpenTelemetry exporter。
 
 ## 设计取舍
 
@@ -151,7 +151,7 @@ Docker 是可选交付方式，不是开发强制依赖。保留本地 Conda 路
 ./scripts/security_scan.sh
 ```
 
-然后完成三类演练：停止 MCP 服务，确认只读请求得到明确错误而不是假结果；配置无效模型，确认 ready 或控制台显示异常；创建数据库备份并恢复到临时路径，验证账户和订单引用一致。
+然后完成三类演练：停止 MCP 服务，确认工具目录 readiness 或请求显示异常；配置无效模型，观察实际调用和工程控制台报错（当前 `/ready` 不检查模型）；创建数据库备份并恢复到临时路径，验证账户和订单引用一致。
 
 ## 从单实例到多实例
 

@@ -37,7 +37,7 @@ flowchart TB
 ## 代码地图
 
 - [state.py](../../backend/app/agent/state.py)：working state。
-- [order_identity.py](../../backend/app/agent/order_identity.py)：订单指代与锁定。
+- [order_identity.py](../../backend/app/agent/order_identity.py)：订单 ID 规范化；指代恢复主要在 Planner、State 与 Runtime fallback。
 - [session_store.py](../../backend/app/agent/session_store.py)：会话存储。
 - [repositories.py](../../backend/app/persistence/repositories.py)：持久化访问。
 - [service.py](../../backend/app/support/service.py)：用户会话边界。
@@ -92,7 +92,7 @@ flowchart TD
 ## 本项目中的实现
 
 - `backend/app/agent/session_store.py` 保存会话状态；
-- `backend/app/agent/order_identity.py` 恢复订单指代；
+- `backend/app/agent/order_identity.py` 规范化订单 ID；`proposal_generator.py`、State 和 Runtime fallback 承担主要上下文选择与目标恢复；
 - `backend/app/support/projector.py` 把持久记录投影为前端会话；
 - `backend/app/persistence/repositories.py` 提供会话与消息持久化；
 - `backend/app/auth/retail_identity.py` 负责应用账户与 Retail 用户映射；

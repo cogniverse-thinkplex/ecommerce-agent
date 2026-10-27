@@ -2,7 +2,7 @@
 
 ## 3 分钟速记
 
-安全边界不能只写在 Prompt 里。模型负责提出动作，确定性 Guard 负责判断能否执行；高风险写操作先生成不可歧义的动作指纹，用户确认后只执行完全相同的动作。
+安全边界不能只写在 Prompt 里。模型负责提出动作，确定性 Guard 负责判断能否执行。当前实现用工具名+参数 fingerprint 与服务端 pending `action_id` 约束确认；用户/会话/过期/资源版本绑定仍是生产强化项。
 
 ## 学习目标
 
@@ -22,10 +22,10 @@ sequenceDiagram
     G->>G: 规范化参数并计算 fingerprint
     G-->>U: 展示订单、商品、原因和影响
     U->>G: 确认
-    G->>G: 比对用户、会话、工具、参数和 fingerprint
+    G->>G: 用 action_id 找回动作并比对工具、参数 fingerprint
     alt 完全一致
         G->>E: execute
-    else 已变化或已过期
+    else 动作不存在、已处理或参数不匹配
         G-->>U: 拒绝并重新确认
     end
 ```
@@ -78,11 +78,11 @@ rg -l "fingerprint|requires_confirmation|pending_action" backend/tests
 
 Policy Guard 是确定性授权层。Prompt 可以告诉模型“写操作前请确认”，但 prompt 不是安全边界：模型可能忽略、误解或被注入。真正的约束必须位于所有工具调用都会经过的执行路径上。
 
-Guard 的典型决策不是布尔值，而是 `allowed / requires_confirmation / denied`。读取本人订单通常允许；取消、退货和修改地址需要确认；访问其他用户或违反业务状态的动作应拒绝。
+通用 Guard 常见决策不是布尔值，而是 `allowed / requires_confirmation / denied`。本项目 `GuardDecisionType` 当前只有 `allow` 与 `require_confirmation`；身份越权由 Executor 额外产生 `policy_guard.identity_denied`。读取本人订单通常允许，写操作进入确认路径。
 
 ### Action fingerprint
 
-确认必须绑定“用户看到的那个动作”。系统对规范化后的工具名、参数、会话、用户及必要版本生成 fingerprint。确认请求只授权完全相同的指纹；任何订单号、商品、数量或地址变化都必须重新展示。
+确认应当绑定“用户看到的那个动作”。当前 Guard 的 fingerprint 只由工具名和规范化参数生成；用户侧提交的是服务端 `action_id`，服务再找回 pending action。它能阻止同一 pending action 被静默换参，但尚未把用户、会话、过期时间或业务资源版本纳入 fingerprint，也不是完整的 TOCTOU 防护。
 
 ```mermaid
 sequenceDiagram
@@ -91,10 +91,10 @@ sequenceDiagram
     participant U as User
     participant E as Executor
     P->>G: write proposal
-    G-->>U: details + fingerprint
-    U->>G: confirm(fingerprint)
-    G->>G: identity / expiry / equality
-    G-->>E: one-time authorization
+    G-->>U: details + action_id
+    U->>G: confirm(action_id)
+    G->>G: load pending action / identity / equality
+    G-->>E: confirmed action
     E->>E: execute and consume authorization
 ```
 
@@ -108,7 +108,7 @@ sequenceDiagram
 
 ## 执行链路
 
-取消提案进入 Guard 后，系统先验证当前用户、订单归属和动作状态，再生成确认摘要与 fingerprint。用户确认时不重新让模型解释意图，而是提交 fingerprint。Executor 消费一次性授权，执行后清空 pending action，防止刷新页面重复执行。
+取消提案进入 Guard 后，系统生成确认摘要并保存 pending action。用户确认时不重新让模型解释意图，而是提交 `action_id`；服务端 claim pending action，并将对应工具名+参数 fingerprint 加入确认集合。数据库 claim 提供了部分重复提交保护，但当前 fingerprint 不会按一次执行消费，也没有过期和业务版本语义；这些是生产强化项，不能视为已经解决。
 
 ## 设计取舍
 
@@ -119,8 +119,8 @@ sequenceDiagram
 ## 失败模式
 
 - 只在 prompt 中要求确认：模型偏离就会绕过；
-- 确认按钮不携带 fingerprint：可能确认了被替换的参数；
-- 授权没有过期或消费：重复提交导致二次写入；
+- action_id 没有绑定正确会话和用户：可能产生越权确认；
+- fingerprint 没有过期、消费和资源版本：相同参数可能重用旧授权；
 - 只校验订单存在，不校验归属：形成越权；
 - 前端隐藏确认卡片但后端仍 pending：状态不一致。
 
@@ -131,7 +131,7 @@ sequenceDiagram
 ./scripts/test_backend.sh -q backend/tests/tools/test_guarded_executor.py
 ```
 
-构造一个取消提案，记录 fingerprint；修改 order_id 后提交旧 fingerprint，预期应拒绝。随后用原参数确认，检查执行只发生一次。这个实验验证的是授权绑定，而不是页面按钮是否可点击。
+构造一个取消提案并记录 `action_id` 与 fingerprint；修改服务端 pending action 参数后确认，预期参数匹配应失败。随后重复提交同一 `action_id`，检查数据库 claim 的行为。最后阅读 Guard 代码，列出当前 fingerprint 为达到一次性、带过期且绑定资源版本还缺哪些字段与状态。
 
 ## 知识检查
 
